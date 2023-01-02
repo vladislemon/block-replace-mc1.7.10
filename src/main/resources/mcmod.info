@@ -1,0 +1,16 @@
+[
+    {
+      "modid": "${modId}",
+      "name": "${modName}",
+      "description": "Mod for Minecraft 1.7.10 to replace blocks at chunk load time.",
+      "version": "${modVersion}",
+      "mcversion": "${minecraftVersion}",
+      "url": "https://github.com/vladislemon/block-replace-mc1.7.10",
+      "updateUrl": "",
+      "authorList": ["vladislemon"],
+      "credits": "",
+      "logoFile": "",
+      "screenshots": [],
+      "dependencies": []
+    }
+]
