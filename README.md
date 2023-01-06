@@ -15,5 +15,6 @@ For example:
     minecraft:dirt=minecraft:stone
     minecraft:grass=minecraft:stone
     Magneticraft:thorium_ore=IC2:blockOreCopper
+    minecraft:red_flower:3=minecraft:red_flower
      >
 ```

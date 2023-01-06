@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Config {
-    public static Map<String, String> replaceMap;
+    public static Map<BlockData, BlockData> replaceMap;
 
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
@@ -24,23 +24,20 @@ public class Config {
     }
 
     private static final class ReplaceListEntry {
-        String whatReplace;
-        String replacement;
+        BlockData whatReplace;
+        BlockData replacement;
 
         ReplaceListEntry(String equalSeparatedPair) {
             String[] parts = equalSeparatedPair.split("=");
-            if (parts[0].isEmpty() || parts[1].isEmpty()) {
-                throw new IllegalArgumentException("Block ids to replace must not be empty");
-            }
-            this.whatReplace = parts[0];
-            this.replacement = parts[1];
+            this.whatReplace = BlockData.fromString(parts[0]);
+            this.replacement = BlockData.fromString(parts[1]);
         }
 
-        String getWhatReplace() {
+        BlockData getWhatReplace() {
             return whatReplace;
         }
 
-        String getReplacement() {
+        BlockData getReplacement() {
             return replacement;
         }
     }

@@ -9,9 +9,9 @@ import net.minecraftforge.event.world.ChunkEvent;
 import java.util.Map;
 
 public class ChunkLoadEventListener {
-    private final Map<String, String> replaceMap;
+    private final Map<BlockData, BlockData> replaceMap;
 
-    public ChunkLoadEventListener(Map<String, String> replaceMap) {
+    public ChunkLoadEventListener(Map<BlockData, BlockData> replaceMap) {
         this.replaceMap = replaceMap;
     }
 
@@ -31,11 +31,14 @@ public class ChunkLoadEventListener {
                 for (int z = 0; z < 16; z++) {
                     for (int x = 0; x < 16; x++) {
                         Block block = storage.getBlockByExtId(x, y, z);
+                        int metadata = storage.getExtBlockMetadata(x, y, z);
                         String blockName = Block.blockRegistry.getNameForObject(block);
-                        String replacementBlockName = replaceMap.get(blockName);
-                        if (replacementBlockName != null) {
-                            Block replacementBlock = Block.getBlockFromName(replacementBlockName);
+                        BlockData blockData = new BlockData(blockName, metadata);
+                        BlockData replacementBlockData = replaceMap.get(blockData);
+                        if (replacementBlockData != null) {
+                            Block replacementBlock = Block.getBlockFromName(replacementBlockData.getName());
                             storage.func_150818_a(x, y, z, replacementBlock);
+                            storage.setExtBlockMetadata(x, y, z, replacementBlockData.getMeta());
                             modified = true;
                         }
                     }
