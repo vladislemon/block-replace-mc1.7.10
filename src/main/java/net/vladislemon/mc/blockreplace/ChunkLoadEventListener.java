@@ -1,6 +1,7 @@
 package net.vladislemon.mc.blockreplace;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import gnu.trove.TIntCollection;
 import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -10,9 +11,11 @@ import java.util.Map;
 
 public class ChunkLoadEventListener {
     private final Map<BlockData, BlockData> replaceMap;
+    private final Map<BlockData, TIntCollection> dimensionMap;
 
-    public ChunkLoadEventListener(Map<BlockData, BlockData> replaceMap) {
+    public ChunkLoadEventListener(Map<BlockData, BlockData> replaceMap, Map<BlockData, TIntCollection> dimensionMap) {
         this.replaceMap = replaceMap;
+        this.dimensionMap = dimensionMap;
     }
 
     @SubscribeEvent
@@ -36,10 +39,14 @@ public class ChunkLoadEventListener {
                         BlockData blockData = new BlockData(blockName, metadata);
                         BlockData replacementBlockData = replaceMap.get(blockData);
                         if (replacementBlockData != null) {
-                            Block replacementBlock = Block.getBlockFromName(replacementBlockData.getName());
-                            storage.func_150818_a(x, y, z, replacementBlock);
-                            storage.setExtBlockMetadata(x, y, z, replacementBlockData.getMeta());
-                            modified = true;
+                            int dimensionId = event.world.provider.dimensionId;
+                            TIntCollection targetDimensionIds = dimensionMap.get(blockData);
+                            if (targetDimensionIds == null || targetDimensionIds.contains(dimensionId)) {
+                                Block replacementBlock = Block.getBlockFromName(replacementBlockData.getName());
+                                storage.func_150818_a(x, y, z, replacementBlock);
+                                storage.setExtBlockMetadata(x, y, z, replacementBlockData.getMeta());
+                                modified = true;
+                            }
                         }
                     }
                 }

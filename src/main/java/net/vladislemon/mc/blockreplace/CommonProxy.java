@@ -1,6 +1,13 @@
 package net.vladislemon.mc.blockreplace;
 
-import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.common.MinecraftForge;
 
 public class CommonProxy {
@@ -9,7 +16,7 @@ public class CommonProxy {
     // etc, and register them with the GameRegistry."
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
-        MinecraftForge.EVENT_BUS.register(new ChunkLoadEventListener(Config.replaceMap));
+        MinecraftForge.EVENT_BUS.register(new ChunkLoadEventListener(Config.replaceMap, Config.dimensionMap));
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes."
