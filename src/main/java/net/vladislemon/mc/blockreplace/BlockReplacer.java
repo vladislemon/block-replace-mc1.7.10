@@ -1,31 +1,35 @@
 package net.vladislemon.mc.blockreplace;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import gnu.trove.TIntCollection;
 import net.minecraft.block.Block;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import net.minecraftforge.event.world.ChunkEvent;
 
 import java.util.Map;
 
-public class ChunkLoadEventListener {
+public class BlockReplacer {
     private final Map<BlockData, BlockData> replaceMap;
     private final Map<BlockData, TIntCollection> dimensionMap;
+    private final boolean recalculateSkylightInModifiedChunks;
 
-    public ChunkLoadEventListener(Map<BlockData, BlockData> replaceMap, Map<BlockData, TIntCollection> dimensionMap) {
+    public BlockReplacer(
+            Map<BlockData, BlockData> replaceMap,
+            Map<BlockData, TIntCollection> dimensionMap,
+            boolean recalculateSkylightInModifiedChunks
+    ) {
         this.replaceMap = replaceMap;
         this.dimensionMap = dimensionMap;
+        this.recalculateSkylightInModifiedChunks = recalculateSkylightInModifiedChunks;
     }
 
-    @SubscribeEvent
-    public void onChunkLoad(ChunkEvent.Load event) {
-        long startTime = System.nanoTime();
+    public void replaceBlocks(World world, Chunk chunk) {
         if (replaceMap.isEmpty()) {
             return;
         }
-        Chunk chunk = event.getChunk();
         boolean modified = false;
+        boolean changesLighting = false;
+        int oldLightOpacity = 0, newLightOpacity;
         for (ExtendedBlockStorage storage : chunk.getBlockStorageArray()) {
             if (storage == null) {
                 continue;
@@ -39,13 +43,22 @@ public class ChunkLoadEventListener {
                         BlockData blockData = new BlockData(blockName, metadata);
                         BlockData replacementBlockData = replaceMap.get(blockData);
                         if (replacementBlockData != null) {
-                            int dimensionId = event.world.provider.dimensionId;
+                            int dimensionId = world.provider.dimensionId;
                             TIntCollection targetDimensionIds = dimensionMap.get(blockData);
                             if (targetDimensionIds == null || targetDimensionIds.contains(dimensionId)) {
                                 Block replacementBlock = Block.getBlockFromName(replacementBlockData.getName());
+                                int blockX = chunk.xPosition << 4 + x;
+                                int blockZ = chunk.zPosition << 4 + z;
+                                if (recalculateSkylightInModifiedChunks) {
+                                    oldLightOpacity = block.getLightOpacity(world, blockX, y, blockZ);
+                                }
                                 storage.func_150818_a(x, y, z, replacementBlock);
                                 storage.setExtBlockMetadata(x, y, z, replacementBlockData.getMeta());
                                 modified = true;
+                                if (recalculateSkylightInModifiedChunks) {
+                                    newLightOpacity = replacementBlock.getLightOpacity(world, blockX, y, blockZ);
+                                    changesLighting |= newLightOpacity != oldLightOpacity;
+                                }
                             }
                         }
                     }
@@ -53,9 +66,10 @@ public class ChunkLoadEventListener {
             }
         }
         if (modified) {
+            if (changesLighting && recalculateSkylightInModifiedChunks) {
+                chunk.generateSkylightMap();
+            }
             chunk.setChunkModified();
         }
-        long endTime = System.nanoTime();
-        BlockReplaceMod.debug(String.format("Blocks in chunk %s replaced for %d ns", chunk.getChunkCoordIntPair(), endTime - startTime));
     }
 }
